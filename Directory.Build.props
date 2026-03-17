@@ -20,6 +20,7 @@
     <Copyright>Copyright © Robotico</Copyright>
     <RepositoryType>git</RepositoryType>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
     <PackageId>Robotico.Idempotency</PackageId>
     <Title>Robotico.Idempotency</Title>
     <Description>Command idempotency for APIs and messaging. IIdempotencyStore, Result. Depends on Robotico.Result.</Description>

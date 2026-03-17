@@ -1,0 +1,51 @@
+= Robotico.Idempotency — Design
+:toc: left
+:toclevels: 2
+:sectnums:
+:icons: font
+
+This document explains the idempotency pattern and how Robotico.Idempotency fits: when to use it, semantics of TryClaimAsync, and integration with other Robotico packages.
+
+== Idempotency pattern
+
+*Idempotency* ensures that a command or request is processed at most once per key. Duplicate requests (e.g. retries, duplicate messages) with the same key are detected and rejected so that side effects are not applied twice.
+
+Typical use cases:
+
+* HTTP APIs: client sends an idempotency key header; server claims the key before processing.
+* Message queues: exactly-once processing per message/deduplication id.
+* Distributed workflows: avoid double execution of a step.
+
+== API contract
+
+* *IIdempotencyStore* — Single abstraction: `TryClaimAsync(string key, CancellationToken)`.
+
+* *TryClaimAsync* returns `Result` (Robotico.Result):
+** Success: the key was not previously seen; the caller "owns" the key and may proceed with the operation.
+** Failure: the key was already used; the caller must not perform the operation again (or must return a cached response).
+
+Implementations must reject null or empty keys (documented; implementations may use `ArgumentNullException.ThrowIfNull` or equivalent).
+
+== Architecture
+
+Idempotency sits at the boundary of incoming requests or messages: before performing a command, the application claims an idempotency key. If the key was already used, the operation is skipped or a cached response is returned.
+
+[source,mermaid]
+----
+flowchart LR
+  A[Client / Message] --> B[IIdempotencyStore]
+  B --> C[Storage]
+  B --> D[Process or Reject]
+----
+
+Combine with Robotico.Outbox for exactly-once: claim key, enqueue outbox message, commit; the processor publishes once per key. Use Robotico.Resilience for retries when the store is temporarily unavailable; Robotico.Validation for key format validation.
+
+== Key format and lifetime
+
+Keys are opaque strings. Common choices: UUIDs, composite keys (e.g. `tenantId:operationId`). Storage implementations may enforce TTL or cleanup of old keys.
+
+== Related packages
+
+* *Robotico.Outbox* — Combine idempotency with the transactional outbox for exactly-once delivery: claim key, enqueue outbox message, commit; processor publishes once per key.
+* *Robotico.Resilience* — Retry when claiming or when the store is temporarily unavailable.
+* *Robotico.Validation* — Validate key format (e.g. non-empty, max length) before calling TryClaimAsync.

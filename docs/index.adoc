@@ -1,0 +1,22 @@
+= Robotico.Idempotency — Documentation
+:toc: left
+:toclevels: 2
+:sectnums:
+:icons: font
+
+Command idempotency for APIs and messaging. IIdempotencyStore and Result-based API. Depends on Robotico.Result.
+
+== Quick links
+
+* link:design.adoc[Design] — Idempotency pattern, API contract, key semantics, integration with Robotico.Outbox and related packages.
+
+== Building the docs
+
+These docs are written in AsciiDoc. To produce HTML (e.g. with Asciidoctor):
+
+----
+asciidoctor docs/index.adoc -o docs/index.html
+asciidoctor docs/design.adoc -o docs/design.html
+----
+
+Or use the AsciiDoc extension in your editor for preview.
